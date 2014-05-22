@@ -1,37 +1,46 @@
-
 /**************************************************************************
  |                                                                         
  |                    STATA SETUP FILE FOR ICPSR 34902
  |       CHILD CARE AND DEVELOPMENT FUND (CCDF) POLICIES DATABASE,
  |                                  2012
- |        (DATASET 0027: OTHER PROVIDER POLICIES: WHO MAY PROVIDE
- |                               CARE DATA)
+ |          (DATASET 0001: BASIC CRITERIA FOR ELIGIBILITY DATA)
  |
  |
- | relevant variables in this file: 
+ |  Please edit this file as instructed below.
+ |  To execute, start Stata, change to the directory containing:
+ |       - this do file
+ |       - the ASCII data file
+ |       - the dictionary file
  |
- |
- | authorizedrelativeinunit - if a non- parent relative living in the home and part of the unit considered for assistance can provide care
- | AuthorizedRelativeNotInUnit - if a non parent relative living in the home and NOT part of the unit considered for assistance can provide care
- | AuthorizedRelativeLivingOutside - IF a non parent relative living outside of the home can provide care
- |
+ |  Then execute the do file (e.g., do 34902-0001-statasetup.do)
  |
  **************************************************************************/
+
+set mem 6m  /* Allocating 6 megabyte(s) of RAM for Stata SE to read the
+                 data file into memory. */
+
 
 set more off  /* This prevents the Stata output viewer from pausing the
                  process */
 
+/****************************************************
 
+Section 1: File Specifications
+   This section assigns local macros to the necessary files.
+   Please edit:
+        "data-filename" ==> The name of data file downloaded from ICPSR
+        "dictionary-filename" ==> The name of the dictionary file downloaded.
+        "stata-datafile" ==> The name you wish to call your Stata data file.
+
+   Note:  We assume that the raw data, dictionary, and setup (this do file) all
+          reside in the same directory (or folder).  If that is not the case
+          you will need to include paths as well as filenames in the macros.
 
 ********************************************************/
-global Nm  `"27"'
-global d_root `"/Users/truskinovsky/Documents/Prospectus/CCDF data"'
-global d_working `"$d_root/CCDF working"'
-global d_file `"$d_root/ICPSR_34902/DS00$Nm"' 
-global raw_data `"$d_file/34902-00$Nm-Data.txt"'
-global dict `"$d_file/34902-00$Nm-Setup.dct"'
-global outfile `"$d_working/clean data/DS0027new.dta"'
-global bigfile `"$d_working/clean data/DS0027newbigfile.dta"'
+
+local raw_data "data-filename"
+local dict "dictionary-filename"
+local outfile "stata-datafile"
 
 /********************************************************
 
@@ -43,15 +52,19 @@ should inflate automatically.
 
 **********************************************************/
 
+infile using `dict', using (`raw_data') clear
 
-clear
-set more off
-infile using "$dict", using ("$raw_data") clear
 
-rename *, l  
-tab state
+/*********************************************************
 
-label data "Child Care and Development Fund (CCDF) Policies Database, 2012, Other Provider Policies: Who May Provide Care Data"
+Section 3: Value Label Definitions
+This section defines labels for the individual values of each variable.
+We suggest that users do not modify this section.
+
+**********************************************************/
+
+
+label data "Child Care and Development Fund (CCDF) Policies Database, 2012, Basic Criteria for Eligibility Data"
 
 #delimit ;
 label define STATE     1 "Alabama" 2 "Alaska" 4 "Arizona" 5 "Arkansas"
@@ -258,84 +271,69 @@ label define PROVIDERSUBTYPE 0 "NA" 1 "Licensed" 2 "Accredited" 3 "License-Exemp
                        88 "Gold" 89 "Silver" 90 "Bronze"
                        91 "Regulated Faith Based Accredited"
                        92 "Registered Accredited" ;
-label define AUTHORIZEDRELATIVEINUNIT 0 "NA" 1 "Yes" 2 "No"
+label define UNREGIMMUNIZATIONRECORDS 0 "NA" 1 "Yes" 2 "No"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
-label define AUTHORIZEDRELATIVENOTINUNIT 0 "NA" 1 "Yes" 2 "No"
+label define UNREGAPPREQUIREMENT 0 "NA" 1 "Yes" 2 "No"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
-label define AUTHORIZEDRELATIVELIVINGOUTSIDE 0 "NA" 1 "Yes" 2 "No"
+label define UNREGPROVIDERORIENTATION 0 "NA" 1 "Yes" 2 "No"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
-label define AUTHORIZEDNONRELATIVEINUNIT 0 "NA" 1 "Yes" 2 "No"
+label define UNREGORIENTATIONGRACEPERIOD -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define UNREGORIENTATIONGRACEPERIODTIME 0 "NA" 1 "Days" 2 "Months" 3 "Years"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
-label define AUTHORIZEDNONRELATIVENOTINUNIT 0 "NA" 1 "Yes" 2 "No"
+label define UNREGCORPORALPUNISHMENT 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define UNREGPARENTALACCESS 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define UNREGPARENTCOMPLAINT 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define UNREGCACFPREQUIREMENT 0 "NA" 1 "Yes" 2 "No"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
 
 
 #delimit cr
 
-* convert begin date and end date to monthdate format
-cap drop begindat2 begindattm
-tempvar date 
-gen `date' = date(begindat, "YMD")
-gen begindat2 = mofd(`date')
-format begindat2 %tm 
 
-tempvar date 
-gen `date' = date(enddat, "YMD")
-gen enddat2 = mofd(`date')
-format enddat2 %tm 
+/***************************************************************************
 
-save "$outfile", replace
+ Section 4: Missing Values
 
- ** check for duplicates 
- duplicates list state begindat2
+ This section will replace numeric missing values (i.e., -9) with generic
+ system missing ".".  By default the code in this section is commented out.
+ Users wishing to apply the generic missing values should remove the comment
+ at the beginning and end of this section.  Note that Stata allows you to
+ specify up to 27 unique missing value codes.
 
+****************************************************************/
 
-
-** make balanced panel:
-clear
-use "$outfile"
-bysort state: keep if _n == 1
-keep state 
-
-tempfile fillfile
-save `fillfile', replace
-
-clear
-set obs 132
-gen yearmo = _n + 503
-format yearmo %tm 
-*tab yearmo
-
-cross using `fillfile'
-sort state yearmo
-gen begindat2 = yearmo
-count
-
-merge 1:1 state begindat2 using "$outfile", update replace
-save "$bigfile", replace
-
-clear
-use "$bigfile"
-
-** get rid of variables I don't need
-drop authorizednonrelativeinunit authorizednonrelativenotinunit 
+/*
+replace UNREGIMMUNIZATIONRECORDS = . if (UNREGIMMUNIZATIONRECORDS == 91 | UNREGIMMUNIZATIONRECORDS == 92)
+replace UNREGAPPREQUIREMENT = . if (UNREGAPPREQUIREMENT == 91 | UNREGAPPREQUIREMENT == 92)
+replace UNREGPROVIDERORIENTATION = . if (UNREGPROVIDERORIENTATION == 91 | UNREGPROVIDERORIENTATION == 92)
+replace UNREGORIENTATIONGRACEPERIOD = . if (UNREGORIENTATIONGRACEPERIOD == -5)
+replace UNREGORIENTATIONGRACEPERIODTIME = . if (UNREGORIENTATIONGRACEPERIODTIME == 91 | UNREGORIENTATIONGRACEPERIODTIME == 92)
+replace UNREGCORPORALPUNISHMENT = . if (UNREGCORPORALPUNISHMENT == 91 | UNREGCORPORALPUNISHMENT == 92)
+replace UNREGPARENTALACCESS = . if (UNREGPARENTALACCESS == 91 | UNREGPARENTALACCESS == 92)
+replace UNREGPARENTCOMPLAINT = . if (UNREGPARENTCOMPLAINT == 91 | UNREGPARENTCOMPLAINT == 92)
+replace UNREGCACFPREQUIREMENT = . if (UNREGCACFPREQUIREMENT == 91 | UNREGCACFPREQUIREMENT == 92)
 
 
+*/
+/********************************************************************
 
-** fill down 
-local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
+ Section 5: Save Outfile
 
-sort state yearmo
-foreach var of local leaders {
-bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-}
+  This section saves out a Stata system format file.  There is no reason to
+  modify it if the macros in Section 1 were specified correctly.
 
-sort state yearmo
-foreach var in authorizedrelativeinunit authorizedrelativenotinunit authorizedrelativelivingoutside {
-bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-}
+*********************************************************************/
+
+save `outfile', replace
+

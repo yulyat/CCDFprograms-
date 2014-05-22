@@ -1,40 +1,32 @@
-
 /**************************************************************************
  |                                                                         
  |                    STATA SETUP FILE FOR ICPSR 34902
  |       CHILD CARE AND DEVELOPMENT FUND (CCDF) POLICIES DATABASE,
  |                                  2012
- |        (DATASET 0027: OTHER PROVIDER POLICIES: WHO MAY PROVIDE
- |                               CARE DATA)
- |
- |
- | relevant variables in this file: 
- |
- |
- | authorizedrelativeinunit - if a non- parent relative living in the home and part of the unit considered for assistance can provide care
- | AuthorizedRelativeNotInUnit - if a non parent relative living in the home and NOT part of the unit considered for assistance can provide care
- | AuthorizedRelativeLivingOutside - IF a non parent relative living outside of the home can provide care
+ |          (DATASET 0021: BASIC CRITERIA FOR ELIGIBILITY DATA)
  |
  |
  **************************************************************************/
 
-set more off  /* This prevents the Stata output viewer from pausing the
-                 process */
 
 
+clear
+set more off  
 
-********************************************************/
-global Nm  `"27"'
+*******************************************************/
+global Nm  `"21"'
 global d_root `"/Users/truskinovsky/Documents/Prospectus/CCDF data"'
 global d_working `"$d_root/CCDF working"'
 global d_file `"$d_root/ICPSR_34902/DS00$Nm"' 
 global raw_data `"$d_file/34902-00$Nm-Data.txt"'
 global dict `"$d_file/34902-00$Nm-Setup.dct"'
-global outfile `"$d_working/clean data/DS0027new.dta"'
-global bigfile `"$d_working/clean data/DS0027newbigfile.dta"'
+global outfile `"$d_working/clean data/DS0021new.dta"'
+global bigfile `"$d_working/clean data/DS0021newbigfile.dta"'
 
-/********************************************************
+global log `"$d_working/log/D00$Nm_`c(current_date)'.smcl"'
 
+/********************************************************/
+/*
 Section 2: Infile Command
 
 This section reads the raw data into Stata format.  If Section 1 was defined
@@ -42,16 +34,25 @@ properly, there should be no reason to modify this section.  These macros
 should inflate automatically.
 
 **********************************************************/
-
-
 clear
 set more off
+capture log close
+log using "$log", replace
 infile using "$dict", using ("$raw_data") clear
 
-rename *, l  
-tab state
 
-label data "Child Care and Development Fund (CCDF) Policies Database, 2012, Other Provider Policies: Who May Provide Care Data"
+/*********************************************************
+
+Section 3: Value Label Definitions
+This section defines labels for the individual values of each variable.
+We suggest that users do not modify this section.
+
+**********************************************************/
+
+
+rename *, l 
+
+label data "Child Care and Development Fund (CCDF) Policies Database, 2012, Basic Criteria for Eligibility Data"
 
 #delimit ;
 label define STATE     1 "Alabama" 2 "Alaska" 4 "Arizona" 5 "Arkansas"
@@ -258,24 +259,156 @@ label define PROVIDERSUBTYPE 0 "NA" 1 "Licensed" 2 "Accredited" 3 "License-Exemp
                        88 "Gold" 89 "Silver" 90 "Bronze"
                        91 "Regulated Faith Based Accredited"
                        92 "Registered Accredited" ;
-label define AUTHORIZEDRELATIVEINUNIT 0 "NA" 1 "Yes" 2 "No"
+label define ELIGMAXAGECHILD 0 "NA" 1 "12"
+                       2 "12, unless the child turns 13 during the school year, then services may be provided for the remainder of the school year"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGMAXAGEMENTALPHYSICALINCAPA_1 -5 "Not in manual" -4 "NA" ;
+label define ELIGMAXAGEPROTECTIVESERVICES -5 "Not in manual" -4 "NA" ;
+label define ELIGMAXAGEFOSTERCARE -5 "Not in manual" -4 "NA" ;
+label define ELIGMINWORKHOURS 0 "NA" 1 "No minimum"
+                       2 "Yes, same minimum for all recipients"
+                       3 "Yes, different minimum for full-time and part-time care"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
-label define AUTHORIZEDRELATIVENOTINUNIT 0 "NA" 1 "Yes" 2 "No"
+label define ELIGMINHOURSAMOUNT -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define ELIGMINHOURSPARTTIME -5 "Not in manual" -4 "NA" ;
+label define ELIGMINWORKHRSTWOPARENT 0 "NA" 1 "No Minimum"
+                       2 "Both must work a total number of hours"
+                       3 "Each must work a specified number of hours"
+                       4 "One parent must work a specified number of hours and the other may work a different number of hours"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
-label define AUTHORIZEDRELATIVELIVINGOUTSIDE 0 "NA" 1 "Yes" 2 "No"
+label define ELIGWORKHRSAMOUNTTWOPARENT -5 "Not in manual" -4 "NA" ;
+label define ELIGSECONDPARENTHRS -5 "Not in manual" -4 "NA" ;
+label define ELIGAPPROVEACTIVITYEMPLOYMENT 0 "NA" 1 "Yes" 2 "No"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
-label define AUTHORIZEDNONRELATIVEINUNIT 0 "NA" 1 "Yes" 2 "No"
+label define ELIGAPPROVEACTIVITYJOBSEARCH 0 "NA" 1 "Yes, for initial and continuing eligibility"
+                       2 "Yes, only for continuing eligibility" 3 "No"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
-label define AUTHORIZEDNONRELATIVENOTINUNIT 0 "NA" 1 "Yes" 2 "No"
+label define ELIGMAXTIMEJOBSEARCH -5 "Not in manual" -4 "NA" -3 "Other" -2 "No limit" ;
+label define ELIGMAXTIMEJOBSEARCHUNIT 0 "NA" 1 "Hours" 2 "Days" 3 "Months" 4 "Years"
+                       92 "Not in manual" ;
+label define ELIGMAXTIMEJOBSEARCHTIMEFRAME 0 "NA" 1 "Per year" 2 "Per 6 months"
+                       3 "Per occurrence" 4 "Other" 92 "Not in manual" ;
+label define ELIGAPPROVEACTIVITYHIGHSCHOOLGED 0 "NA" 1 "Yes" 2 "No"
                        91 "Not enough information to code accurately"
                        92 "Not in manual" ;
+label define ELIGAPPROVEACTIVITYESL 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGAPPROVEACTIVITYTRAINING 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGAPPROVEACTIVITYPOSTSECED 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGAPPROVEACTIVITYTANFWORK 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGAPPROVEACTIVITYANYTANF 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGAPPROVEACTIVITYSNAPET 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGFULLTIMEHIGHSCHOOLREQUIRE 0 "NA"
+                       1 "Must meet minimum hour requirement each semester"
+                       2 "Full-time as defined by school student is attending"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGFULLTIMEHIGHSCHOOLHOURS -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define ELIGFULLTIMEPOSTSECONDARYREQUIRE 0 "NA"
+                       1 "Must meet minimum hour requirement each semester"
+                       2 "Full-time as defined by school student is attending"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGFULLTIMEPOSTSECONDARYHOURS -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define ELIGFULLTIMEHIGHSCHOOLWORK -5 "Not in manual" -4 "NA" -3 "Other"
+                       -2 "No work requirement" ;
+label define ELIGMAXHIGHSCHOOLHOURSWORK -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define ELIGFULLTIMEPOSTSECONDARYWORK -5 "Not in manual" -4 "NA" -3 "Other"
+                       -2 "No work requirement" ;
+label define ELIGMAXPOSTSECONDARYHOURSWORK -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define ELIGHOUSINGSEARCH 0 "NA" 1 "Yes"
+                       2 "Yes, but can only count towards work hour requirement"
+                       3 "No" 91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGHOUSINGHRS -5 "Not in manual" -4 "NA" ;
+label define ELIGMINAGEPARENT -5 "Not in manual" -4 "NA"
+                       -3 "Varies (describe in notes)" -2 "No minimum" ;
+label define ELIGSPECIALNEEDSPARENT 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Varies" ;
+label define ELIGTANFACTIVITY 0 "NA" 1 "Same as non-TANF families"
+                       2 "Participation in a TANF work program"
+                       3 "Must meet TANF-specific requirements not specified in child care manual"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGSNAPETACTIVITY 0 "NA" 1 "Same as non-SNAP E&T families"
+                       2 "Must meet SNAP E&T-specific requirements not specified in child care manual"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGTCCACTIVITY 0 "NA" 1 "Same as non-TCC families"
+                       2 "Must meet TCC-specific requirements not specified in child care manual"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGTIMELIMITTCCACTIVITY -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define ELIGTIMELIMITTCCACTIVITYTIMEUNIT 0 "NA" 1 "Days" 2 "Weeks" 3 "Months"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGHOMELESSACTIVITY 0 "NA" 1 "Same as non-homeless families"
+                       2 "No activity requirement" 3 "Housing search only"
+                       4 "Housing search counts towards work hour requirements"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGTIMELIMITHOMELESSACTIVITY -5 "Not in manual" -4 "NA" -3 "Other" -2 "No limit" ;
+label define ELIGTIMELIMITHOMELESSACTIVITYT_1 0 "NA" 1 "Days" 2 "Weeks" 3 "Months"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGCPSACTIVITY 0 "NA" 1 "No activity requirement"
+                       2 "Varies, depending on if child left in home"
+                       3 "Same as non-CPS families" 4 "Not eligible for CCDF"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGTIMELIMITCPSACTIVITY -5 "Not in manual" -4 "NA" -3 "Other" -2 "No limit" ;
+label define ELIGTIMELIMITCPSACTIVITYTIMEUNIT 0 "NA" 1 "Days" 2 "Weeks" 3 "Months"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGFOSTERACTIVITY 0 "NA" 1 "Same as for non-foster care families"
+                       2 "No activity requirement" 3 "Not eligible for CCDF"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define ELIGINELIGIBLESANCTIONTANF 0 "NA" 1 "Eligible for CCDF" 2 "Ineligible for CCDF"
+                       3 "May be eligible for CCDF"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGINELIGIBLESANCTIONSNAP 0 "NA" 1 "Eligible for CCDF" 2 "Ineligible for CCDF"
+                       3 "May be eligible for CCDF"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGINELIGIBLEFRAUDFIRSTOFFENSE 0 "NA" 1 "Yes, for limited time" 2 "Yes, permanently"
+                       3 "No" 4 "Varies"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGINELIGIBLEFRAUDFIRSTOFFENS_1 -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define ELIGINELIGIBLEFRAUDSECONDOFFENSE 0 "NA" 1 "Yes, for limited time" 2 "Yes, permanently"
+                       3 "No" 4 "Varies"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGINELIGIBLEFRAUDSECONDOFFEN_1 -5 "Not in manual" -4 "NA" -3 "Other" ;
+label define ELIGINELIGIBLEFRAUDTHIRDOFFENSE 0 "NA" 1 "Yes, for limited time" 2 "Yes, permanently"
+                       3 "No" 4 "Varies"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define ELIGINELIGIBLEFRAUDTHIRDOFFENS_1 -5 "Not in manual" -4 "NA" -3 "Other" ;
+
 
 
 #delimit cr
+
 
 * convert begin date and end date to monthdate format
 cap drop begindat2 begindattm
@@ -291,9 +424,42 @@ format enddat2 %tm
 
 save "$outfile", replace
 
- ** check for duplicates 
+** check for duplicates 
  duplicates list state begindat2
+ duplicates tag state begindat2, generate (dups)
+ list state county program familygroup providertype providersubtype begindat begindat2 if dups > 0
 
+
+
+ /*
+
+     |    state              county                          program   family~p   pr~rtype   pr~btype     begindat   begind~2 |
+     |------------------------------------------------------------------------------------------------------------------------|
+123. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2009/07/27     2009m7 |
+124. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2009/07/24     2009m7 |
+127. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2008/09/01     2008m9 |
+128. | New York        All Counties       Child Care Subsidy Program        All         NA         NA   2008/09/01     2008m9 |
+163. |    Texas   Gulf Coast Region   Workforce Solutions Child Care        All         NA         NA   2008/09/01     2008m9 |
+     |------------------------------------------------------------------------------------------------------------------------|
+164. |    Texas        All Counties              Child Care Services        All         NA         NA   2008/09/01     2008m9 |
+
+*/
+
+** check interesting vars:
+
+local keepers eligmaxagechild eligminworkhours eligminhoursamount eligminhoursparttime eligminworkhrstwoparent eligsecondparenthrs eligapproveactivityemployment eligapproveactivityjobsearch eligapproveactivityhighschoolged eligapproveactivityesl eligapproveactivitytraining eligapproveactivitypostseced
+foreach var of local keepers {
+  list state county begindat begindat2 `var' if dups > 0
+}
+
+
+list begindat enddat eligapproveactivityjobsearch if state == 36
+
+* keep the latest record if 2 entries for one month, keep "all counties" if different entries for counties [ select biggest county instead?]
+
+
+drop if inlist(_n, 124, 127, 163)
+save "$outfile", replace
 
 
 ** make balanced panel:
@@ -322,20 +488,17 @@ save "$bigfile", replace
 clear
 use "$bigfile"
 
-** get rid of variables I don't need
-drop authorizednonrelativeinunit authorizednonrelativenotinunit 
-
+** keep interesting variables ( noted above)
+local keepers eligmaxagechild eligminworkhours eligminhoursamount eligminhoursparttime eligminworkhrstwoparent eligsecondparenthrs eligapproveactivityemployment eligapproveactivityjobsearch eligapproveactivityhighschoolged eligapproveactivityesl eligapproveactivitytraining eligapproveactivitypostseced
+local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
+keep `leaders' `keepers'
 
 
 ** fill down 
-local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
-
 sort state yearmo
 foreach var of local leaders {
 bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
 }
-
-sort state yearmo
-foreach var in authorizedrelativeinunit authorizedrelativenotinunit authorizedrelativelivingoutside {
+foreach var of local keepers {
 bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
 }

@@ -1,57 +1,67 @@
-
 /**************************************************************************
  |                                                                         
  |                    STATA SETUP FILE FOR ICPSR 34902
  |       CHILD CARE AND DEVELOPMENT FUND (CCDF) POLICIES DATABASE,
  |                                  2012
- |        (DATASET 0027: OTHER PROVIDER POLICIES: WHO MAY PROVIDE
- |                               CARE DATA)
+ |            (DATASET 0019: REIMBURSEMENT RATE POLICIES DATA)
  |
  |
- | relevant variables in this file: 
- |
- |
- | authorizedrelativeinunit - if a non- parent relative living in the home and part of the unit considered for assistance can provide care
- | AuthorizedRelativeNotInUnit - if a non parent relative living in the home and NOT part of the unit considered for assistance can provide care
- | AuthorizedRelativeLivingOutside - IF a non parent relative living outside of the home can provide care
- |
- |
+ |  ReimburseDailyFullTime  The definition for daily full-time care.
+ |  ReimburseDailyPartTime  The definition for daily part-time care.
+ |  ReimburseWeeklyFullTime The definition for weekly fulltime care
+ |  ReimburseWeeklyPartTime  The definition for weekly part-time care
+ |  ReimburseMonthlyFullTime   The definition for monthly full-time care.
+ |  ReimburseMonthlyPartTime   The definition for monthly part-time care
+ |  ReimburseRateGuidelines Which rate is used if the child falls into more than one category for amount of care.
+ |  ReimburseMaxAgeGroupOne  The maximum age (in months) for the first group used to determine provider rates.
+ |  ReimburseMaxAgeGroupTwo  The maximum age (in months) for the second group used to determine provider rates.
+ |  ReimburseMaxAgeGroupThree The maximum age (in months) for the third group used to determine provider rates.
+ | 
+ |  ReimburseMaxAgeGroupFour  The maximum age (in months) for the fourth group used to determine provider rates.
+ |  ReimburseMaxAgeGroupFive  The maximum age (in months) for the fifth group used to determine provider rates.
  **************************************************************************/
 
-set more off  /* This prevents the Stata output viewer from pausing the
-                 process */
 
 
+clear
+set more off  
 
-********************************************************/
-global Nm  `"27"'
+*******************************************************/
+global Nm  `"19"'
 global d_root `"/Users/truskinovsky/Documents/Prospectus/CCDF data"'
 global d_working `"$d_root/CCDF working"'
 global d_file `"$d_root/ICPSR_34902/DS00$Nm"' 
 global raw_data `"$d_file/34902-00$Nm-Data.txt"'
 global dict `"$d_file/34902-00$Nm-Setup.dct"'
-global outfile `"$d_working/clean data/DS0027new.dta"'
-global bigfile `"$d_working/clean data/DS0027newbigfile.dta"'
+global outfile `"$d_working/clean data/DS0019new.dta"'
+global bigfile `"$d_working/clean data/DS0019newbigfile.dta"'
+
+global log `"$d_working/log/D00$Nm_`c(current_date)'.smcl"'
 
 /********************************************************
 
 Section 2: Infile Command
 
-This section reads the raw data into Stata format.  If Section 1 was defined
-properly, there should be no reason to modify this section.  These macros
-should inflate automatically.
-
 **********************************************************/
-
 
 clear
 set more off
+capture log close
+log using "$log", replace
 infile using "$dict", using ("$raw_data") clear
 
-rename *, l  
-tab state
 
-label data "Child Care and Development Fund (CCDF) Policies Database, 2012, Other Provider Policies: Who May Provide Care Data"
+
+/*********************************************************
+
+Section 3: Value Label Definitions
+This section defines labels for the individual values of each variable.
+We suggest that users do not modify this section.
+
+**********************************************************/
+
+rename *, l 
+label data "Child Care and Development Fund (CCDF) Policies Database, 2012, Reimbursement Rate Policies Data"
 
 #delimit ;
 label define STATE     1 "Alabama" 2 "Alaska" 4 "Arizona" 5 "Arkansas"
@@ -258,24 +268,16 @@ label define PROVIDERSUBTYPE 0 "NA" 1 "Licensed" 2 "Accredited" 3 "License-Exemp
                        88 "Gold" 89 "Silver" 90 "Bronze"
                        91 "Regulated Faith Based Accredited"
                        92 "Registered Accredited" ;
-label define AUTHORIZEDRELATIVEINUNIT 0 "NA" 1 "Yes" 2 "No"
-                       91 "Not enough information to code accurately"
-                       92 "Not in manual" ;
-label define AUTHORIZEDRELATIVENOTINUNIT 0 "NA" 1 "Yes" 2 "No"
-                       91 "Not enough information to code accurately"
-                       92 "Not in manual" ;
-label define AUTHORIZEDRELATIVELIVINGOUTSIDE 0 "NA" 1 "Yes" 2 "No"
-                       91 "Not enough information to code accurately"
-                       92 "Not in manual" ;
-label define AUTHORIZEDNONRELATIVEINUNIT 0 "NA" 1 "Yes" 2 "No"
-                       91 "Not enough information to code accurately"
-                       92 "Not in manual" ;
-label define AUTHORIZEDNONRELATIVENOTINUNIT 0 "NA" 1 "Yes" 2 "No"
-                       91 "Not enough information to code accurately"
-                       92 "Not in manual" ;
+label define REIMBURSEMAXAGEGROUPONE -5 "Not in manual" -4 "NA" ;
+label define REIMBURSEMAXAGEGROUPTWO -5 "Not in manual" -4 "NA" ;
+label define REIMBURSEMAXAGEGROUPTHREE -5 "Not in manual" -4 "NA" ;
+label define REIMBURSEMAXAGEGROUPFOUR -5 "Not in manual" -4 "NA" ;
+label define REIMBURSEMAXAGEGROUPFIVE -5 "Not in manual" -4 "NA" ;
 
 
 #delimit cr
+
+
 
 * convert begin date and end date to monthdate format
 cap drop begindat2 begindattm
@@ -291,9 +293,42 @@ format enddat2 %tm
 
 save "$outfile", replace
 
- ** check for duplicates 
+** check for duplicates 
  duplicates list state begindat2
+ duplicates tag state begindat2, generate (dups)
+ list state county program familygroup providertype providersubtype begindat begindat2 if dups > 0
 
+
+
+ /*
+
+     |    state              county                          program   family~p   pr~rtype   pr~btype     begindat   begind~2 |
+     |------------------------------------------------------------------------------------------------------------------------|
+123. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2009/07/27     2009m7 |
+124. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2009/07/24     2009m7 |
+127. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2008/09/01     2008m9 |
+128. | New York        All Counties       Child Care Subsidy Program        All         NA         NA   2008/09/01     2008m9 |
+163. |    Texas   Gulf Coast Region   Workforce Solutions Child Care        All         NA         NA   2008/09/01     2008m9 |
+     |------------------------------------------------------------------------------------------------------------------------|
+164. |    Texas        All Counties              Child Care Services        All         NA         NA   2008/09/01     2008m9 |
+
+*/
+
+** check interesting vars:
+
+local keepers eligmaxagechild eligminworkhours eligminhoursamount eligminhoursparttime eligminworkhrstwoparent eligsecondparenthrs eligapproveactivityemployment eligapproveactivityjobsearch eligapproveactivityhighschoolged eligapproveactivityesl eligapproveactivitytraining eligapproveactivitypostseced
+foreach var of local keepers {
+  list state county begindat begindat2 `var' if dups > 0
+}
+
+
+list begindat enddat eligapproveactivityjobsearch if state == 36
+
+* keep the latest record if 2 entries for one month, keep "all counties" if different entries for counties [ select biggest county instead?]
+
+
+drop if inlist(_n, 124, 127, 163)
+save "$outfile", replace
 
 
 ** make balanced panel:
@@ -322,20 +357,21 @@ save "$bigfile", replace
 clear
 use "$bigfile"
 
-** get rid of variables I don't need
-drop authorizednonrelativeinunit authorizednonrelativenotinunit 
-
+** keep interesting variables ( noted above)
+local keepers eligmaxagechild eligminworkhours eligminhoursamount eligminhoursparttime eligminworkhrstwoparent eligsecondparenthrs eligapproveactivityemployment eligapproveactivityjobsearch eligapproveactivityhighschoolged eligapproveactivityesl eligapproveactivitytraining eligapproveactivitypostseced
+local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
+keep `leaders' `keepers'
 
 
 ** fill down 
-local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
-
 sort state yearmo
 foreach var of local leaders {
 bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
 }
-
-sort state yearmo
-foreach var in authorizedrelativeinunit authorizedrelativenotinunit authorizedrelativelivingoutside {
+foreach var of local keepers {
 bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
 }
+
+
+save "$bigfile", replace
+

@@ -1,0 +1,38 @@
+
+
+/*
+
+*file 27 --> Other provider policies: who is authorized to provide care
+
+Authorizedrelativeinunit - if a non- parent relative living in the home and part of the unit considered for assistance can provide care
+AuthorizedRelativeNotInUnit - if a non parent relative living in the home and NOT part of the unit considered for assistance can provide care
+AuthorizedRelativeLivingOutside - IF a non parent relative living outside of the home can provide care
+
+
+* file --> Elig Criteria: basic criteria for eligibility 
+
+EligMaxAgeChild - oldest age child who is not physically or mentally incapacitated may recieve CCDF funding
+EligMinWorkHours - IF there is a minimum number of hours a recipient must work each week in order to receive child care subsidy
+EligMinHoursAmount - Minimum number of hours a recipient must work each week in order to receive CCS
+EligMinHoursPartTime - if different minimum for full and part time, min umber of hours recipient must work each week to qualify for part time care
+
+EligMinWorkHrsTwoParent - The minimum number of weekly hours required for a two-parent family, when different from a single parent family.
+
+EligWorkHrsAmountTwoParent -  If different than single parent, the number of weekly hours for both parents, each parent, or the first   parent if the hours are different for each parent.
+
+EligSecondParentHrs - If different for each parent, the number of weekly hours for the second parent.
+
+EligApproveActivityEmployment - If employment is an approved activity for CCDF eligibility.
+
+EligApproveActivityJobSearch - If job search activities are approved for CCDF eligibility.
+
+EligApproveActivityHighSchoolGED If high school or GED activities are approved for CCDF eligibility.
+
+EligApproveActivityESL - If ESL/ESOL is an approved activity for CCDF eligibility.
+
+EligApproveActivityTraining - If vocational training is an approved activity for CCDF eligibility.
+
+EligApproveActivityPostSecEd- If post-secondary education is an approved activity for CCDF eligibility.
+
+
+EligMaxAgeChild EligMinWorkHours EligMinHoursAmount EligMinHoursPartTime EligMinWorkHrsTwoParent EligSecondParentHrs EligApproveActivityEmployment EligApproveActivityJobSearch EligApproveActivityHighSchoolGED EligApproveActivityESL EligApproveActivityTraining EligApproveActivityPostSecEd
