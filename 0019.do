@@ -34,9 +34,21 @@ global d_file `"$d_root/ICPSR_34902/DS00$Nm"'
 global raw_data `"$d_file/34902-00$Nm-Data.txt"'
 global dict `"$d_file/34902-00$Nm-Setup.dct"'
 global outfile `"$d_working/clean data/DS0019new.dta"'
-global bigfile `"$d_working/clean data/DS0019newbigfile.dta"'
 
-global log `"$d_working/log/D00$Nm_`c(current_date)'.smcl"'
+global outfilePTall `"$d_working/clean data/DS0019newPTall.dta"'
+global outfilePT1 `"$d_working/clean data/DS0019newPT1.dta"'
+global outfilePT2 `"$d_working/clean data/DS0019newPT2.dta"'
+global outfilePT3 `"$d_working/clean data/DS0019newPT3.dta"'
+global outfilePT4 `"$d_working/clean data/DS0019newPT4.dta"'
+
+global bigfile `"$d_working/clean data/DS0019newbigfile.dta"'
+global bigfilePTall `"$d_working/clean data/DS0019newbigfilePTall.dta"'
+global bigfilePT1 `"$d_working/clean data/DS0019newbigfilePT1.dta"'
+global bigfilePT2 `"$d_working/clean data/DS0019newbigfilePT2.dta"'
+global bigfilePT3 `"$d_working/clean data/DS0019newbigfilePT3.dta"'
+global bigfilePT4 `"$d_working/clean data/DS0019newbigfilePT4.dta"'
+
+global log `"$d_working/log/D00$Nm -`c(current_date)'.smcl"'
 
 /********************************************************
 
@@ -293,85 +305,438 @@ format enddat2 %tm
 
 save "$outfile", replace
 
-** check for duplicates 
- duplicates list state begindat2
- duplicates tag state begindat2, generate (dups)
- list state county program familygroup providertype providersubtype begindat begindat2 if dups > 0
+
+** divide into 4 data sets based on provider type:**
+****************************************************
+
+  * first cut: variables for ALL provider types (98) *
+  ****************************************************
+
+              tab providertype, m
+              keep if providertype == 98
+              save "$outfilePTall", replace
+
+              clear
+              use "$outfilePTall"
+
+              ** check for duplicates 
+               duplicates list state begindat2
+               duplicates tag state begindat2, generate (dups)
+               list state county program familygroup providertype providersubtype begindat begindat2 if dups > 0
+
+              /*
+               40. | Oregon   All Counties   Child Care Program        All        All   Registered   2012/01/01     2012m1 |
+               41. | Oregon   All Counties   Child Care Program        All        All    Certified   2012/01/01     2012m1 |
+               42. | Oregon   All Counties   Child Care Program        All        All     Standard   2007/10/01    2007m10 |
+               43. | Oregon   All Counties   Child Care Program        All        All     Enhanced   2007/10/01    2007m10 |
+               44. | Oregon   All Counties   Child Care Program        All        All   Registered   2007/10/01    2007m10 |
+                   |-------------------------------------------------------------------------------------------------------|
+               45. | Oregon   All Counties   Child Care Program        All        All    Certified   2007/10/01    2007m10 
+
+
+              */
+
+
+              ** check interesting vars:
+
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+
+              foreach var of local keepers {
+                list state county begindat begindat2 `var' if dups > 0
+              }
+
+
+              * keep the first record of each ( registered) ( all seem to be the same generally)
+
+              drop if dups >0 & providersubtype != 17
+
+
+              * check if unique ID
+              isid state begindat2
+              save "$outfilePTall", replace
 
 
 
- /*
+              ** make balanced panel:
+              set more off
+              clear
+              use "$outfilePTall"
+              bysort state: keep if _n == 1
+              keep state 
 
-     |    state              county                          program   family~p   pr~rtype   pr~btype     begindat   begind~2 |
-     |------------------------------------------------------------------------------------------------------------------------|
-123. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2009/07/27     2009m7 |
-124. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2009/07/24     2009m7 |
-127. | New York       New York City       Child Care Subsidy Program        All         NA         NA   2008/09/01     2008m9 |
-128. | New York        All Counties       Child Care Subsidy Program        All         NA         NA   2008/09/01     2008m9 |
-163. |    Texas   Gulf Coast Region   Workforce Solutions Child Care        All         NA         NA   2008/09/01     2008m9 |
-     |------------------------------------------------------------------------------------------------------------------------|
-164. |    Texas        All Counties              Child Care Services        All         NA         NA   2008/09/01     2008m9 |
+              tempfile fillfile
+              save `fillfile', replace
 
-*/
+              clear
+              set obs 132
+              gen yearmo = _n + 503
+              format yearmo %tm 
 
-** check interesting vars:
+              *tab yearmo
 
-local keepers eligmaxagechild eligminworkhours eligminhoursamount eligminhoursparttime eligminworkhrstwoparent eligsecondparenthrs eligapproveactivityemployment eligapproveactivityjobsearch eligapproveactivityhighschoolged eligapproveactivityesl eligapproveactivitytraining eligapproveactivitypostseced
-foreach var of local keepers {
-  list state county begindat begindat2 `var' if dups > 0
-}
+              cross using `fillfile'
+              sort state yearmo
+              gen begindat2 = yearmo
+              count
 
+              merge 1:1 state begindat2 using "$outfilePTall", update replace
+              save "$bigfilePTall", replace
 
-list begindat enddat eligapproveactivityjobsearch if state == 36
+              clear
+              use "$bigfilePTall"
 
-* keep the latest record if 2 entries for one month, keep "all counties" if different entries for counties [ select biggest county instead?]
-
-
-drop if inlist(_n, 124, 127, 163)
-save "$outfile", replace
+              ** keep interesting variables ( noted above)
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
+              keep `leaders' `keepers'
 
 
-** make balanced panel:
+              ** fill down 
+              sort state yearmo
+              foreach var of local leaders {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+              foreach var of local keepers {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+
+              ** rename variables with PTall ending: 
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              foreach var of local keepers{
+                rename `var' `var'PTall 
+              }
+
+              cap drop _merge
+
+              save "$bigfilePTall", replace
+
+  * next cut: variables for Center based provider types (1) *
+  ****************************************************
+              clear
+              use "$outfile"
+
+              tab providertype, m
+              keep if providertype == 1
+              cap drop __000000 __000001
+              save "$outfilePT1", replace
+
+              clear
+              use "$outfilePT1"
+
+              ** check for duplicates 
+               duplicates list state begindat2
+               
+               * yay no duplicates! *
+
+              * check if unique ID
+              isid state begindat2
+              save "$outfilePT1", replace
+
+
+
+              ** make balanced panel:
+              set more off
+              clear
+              use "$outfilePT1"
+              bysort state: keep if _n == 1
+              keep state 
+
+              tempfile fillfile
+              save `fillfile', replace
+
+              clear
+              set obs 132
+              gen yearmo = _n + 503
+              format yearmo %tm 
+
+              *tab yearmo
+
+              cross using `fillfile'
+              sort state yearmo
+              gen begindat2 = yearmo
+              count
+
+              merge 1:1 state begindat2 using "$outfilePT1", update replace
+              save "$bigfilePT1", replace
+
+              clear
+              use "$bigfilePT1"
+
+              ** keep interesting variables ( noted above)
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
+              keep `leaders' `keepers'
+
+
+              ** fill down 
+              sort state yearmo
+              foreach var of local leaders {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+              foreach var of local keepers {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+
+
+            
+              ** rename variables with PTall ending: 
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              foreach var of local keepers{
+                rename `var' `var'PT1 
+              }
+
+               cap drop _merge
+
+
+              save "$bigfilePT1", replace
+
+  * 3rd  cut: variables for FAmily Child Care Home provider types (2) *
+  ****************************************************
+
+              clear
+              use "$outfile"
+
+              tab providertype, m
+              keep if providertype == 2
+              cap drop __000000 __000001
+              save "$outfilePT2", replace
+
+              clear
+              use "$outfilePT2"
+
+              ** check for duplicates 
+               duplicates list state begindat2
+               
+               *no duplicates!* 
+
+              * check if unique ID
+              isid state begindat2
+              save "$outfilePT2", replace
+
+
+
+              ** make balanced panel:
+              set more off
+              clear
+              use "$outfilePT2"
+              bysort state: keep if _n == 1
+              keep state 
+
+              tempfile fillfile
+              save `fillfile', replace
+
+              clear
+              set obs 132
+              gen yearmo = _n + 503
+              format yearmo %tm 
+
+              *tab yearmo
+
+              cross using `fillfile'
+              sort state yearmo
+              gen begindat2 = yearmo
+              count
+
+              merge 1:1 state begindat2 using "$outfilePT2", update replace
+              save "$bigfilePT2", replace
+
+              clear
+              use "$bigfilePT2"
+
+              ** keep interesting variables ( noted above)
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
+              keep `leaders' `keepers'
+
+
+              ** fill down 
+              sort state yearmo
+              foreach var of local leaders {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+              foreach var of local keepers {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+
+              ** rename variables with PT2 ending: 
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              foreach var of local keepers{
+                rename `var' `var'PT2 
+              }
+              cap drop _merge
+
+
+              save "$bigfilePT2", replace
+
+  * 4rth  cut: variables for IN-Home provider types (3) *
+  ****************************************************
+
+              clear
+              use "$outfile"
+
+              tab providertype, m
+              keep if providertype == 3
+              cap drop __000000 __000001
+              save "$outfilePT3", replace
+
+              clear
+              use "$outfilePT3"
+
+              ** check for duplicates 
+               duplicates list state begindat2
+               
+               *no duplicates!* 
+
+              * check if unique ID
+              isid state begindat2
+              save "$outfilePT3", replace
+
+
+
+              ** make balanced panel:
+              set more off
+              clear
+              use "$outfilePT3"
+              bysort state: keep if _n == 1
+              keep state 
+
+              tempfile fillfile
+              save `fillfile', replace
+
+              clear
+              set obs 132
+              gen yearmo = _n + 503
+              format yearmo %tm 
+
+              *tab yearmo
+
+              cross using `fillfile'
+              sort state yearmo
+              gen begindat2 = yearmo
+              count
+
+              merge 1:1 state begindat2 using "$outfilePT3", update replace
+              save "$bigfilePT3", replace
+
+              clear
+              use "$bigfilePT3"
+
+              ** keep interesting variables ( noted above)
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
+              keep `leaders' `keepers'
+
+
+              ** fill down 
+              sort state yearmo
+              foreach var of local leaders {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+              foreach var of local keepers {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+
+              ** rename variables with PT3 ending: 
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              foreach var of local keepers{
+                rename `var' `var'PT3 
+              }
+              cap drop _merge
+              save "$bigfilePT3", replace
+
+
+  * 5rth  cut: variables for group family child care home provider types (4) *
+  ****************************************************
+
+              clear
+              use "$outfile"
+
+              tab providertype, m
+              keep if providertype == 4
+              cap drop __000000 __000001
+              save "$outfilePT4", replace
+
+              clear
+              use "$outfilePT4"
+
+              ** check for duplicates 
+               duplicates list state begindat2
+               
+               *no duplicates!* 
+
+              * check if unique ID
+              isid state begindat2
+              save "$outfilePT4", replace
+
+
+
+              ** make balanced panel:
+              set more off
+              clear
+              use "$outfilePT4"
+              bysort state: keep if _n == 1
+              keep state 
+
+              tempfile fillfile
+              save `fillfile', replace
+
+              clear
+              set obs 132
+              gen yearmo = _n + 503
+              format yearmo %tm 
+
+              *tab yearmo
+
+              cross using `fillfile'
+              sort state yearmo
+              gen begindat2 = yearmo
+              count
+
+              merge 1:1 state begindat2 using "$outfilePT4", update replace
+              save "$bigfilePT4", replace
+
+              clear
+              use "$bigfilePT4"
+
+              ** keep interesting variables ( noted above)
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
+              keep `leaders' `keepers'
+
+
+              ** fill down 
+              sort state yearmo
+              foreach var of local leaders {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+              foreach var of local keepers {
+              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
+              }
+
+              ** rename variables with PT4 ending: 
+              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
+              foreach var of local keepers{
+                rename `var' `var'PT4 
+              }
+
+              cap drop _merge
+              save "$bigfilePT4", replace
+
+** merge together all provider types to make balanced panel:
+
+
 clear
-use "$outfile"
-bysort state: keep if _n == 1
-keep state 
-
-tempfile fillfile
-save `fillfile', replace
-
-clear
-set obs 132
-gen yearmo = _n + 503
-format yearmo %tm 
-*tab yearmo
-
-cross using `fillfile'
-sort state yearmo
-gen begindat2 = yearmo
-count
-
-merge 1:1 state begindat2 using "$outfile", update replace
+use "$bigfilePTall"
 save "$bigfile", replace
 
+
+forvalues i = 1/4 {
+  merge 1:1 state begindat2 using "${bigfilePT`i'}", update replace
+  rename _merge _merge`i'
+  save "$bigfile", replace
+}
+
 clear
-use "$bigfile"
+use "$bigfilePTall"
 
-** keep interesting variables ( noted above)
-local keepers eligmaxagechild eligminworkhours eligminhoursamount eligminhoursparttime eligminworkhrstwoparent eligsecondparenthrs eligapproveactivityemployment eligapproveactivityjobsearch eligapproveactivityhighschoolged eligapproveactivityesl eligapproveactivitytraining eligapproveactivitypostseced
-local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
-keep `leaders' `keepers'
-
-
-** fill down 
-sort state yearmo
-foreach var of local leaders {
-bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-}
-foreach var of local keepers {
-bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-}
-
-
-save "$bigfile", replace
 
