@@ -1,0 +1,56 @@
+* this do file creates a balanced panel cross file for merging : 132 year months ( 2002- 2014), 56 states 
+
+global statelist `"$d_working/clean data/statelist.dta"'
+global panelfile `"$d_working/clean data/panelfile.dta"'
+
+			  
+
+
+				** make statelist:
+				/*
+			  bysort state: keep if _n == 1
+			  keep state 
+	
+			  save "$statelist", replace
+				*/
+
+				** make balanced panel:
+
+              clear
+              set obs 132
+              gen yearmo = _n + 503
+              format yearmo %tm 
+
+              *tab yearmo
+
+              cross using "$statelist"
+              sort state yearmo
+              gen begindat2 = yearmo
+              count
+
+              	save "$panelfile", replace
+
+
+
+              	capture program drop makepanel
+
+				program define makepanel
+
+				clear
+				use "$panelfile"
+ 				merge 1:1 state begindat2 using "`1'", update replace
+              	save "`2'", replace
+				keep  state yearmo begindat2 $leaders $keepers
+				sort state yearmo
+				foreach var of global leaders {
+					foreach var2 of varlist `var' {
+      					bys state: replace `var2' = `var2'[_n-1] if missing(`var2') & _merge == 1
+					}
+				}
+				foreach var of global keepers {
+                    foreach var2 of varlist `var' {
+      					bys state: replace `var2' = `var2'[_n-1] if missing(`var2') & _merge == 1
+					}      			
+				}
+ 
+ 				end 

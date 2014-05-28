@@ -36,3 +36,55 @@ EligApproveActivityPostSecEd- If post-secondary education is an approved activit
 
 
 EligMaxAgeChild EligMinWorkHours EligMinHoursAmount EligMinHoursPartTime EligMinWorkHrsTwoParent EligSecondParentHrs EligApproveActivityEmployment EligApproveActivityJobSearch EligApproveActivityHighSchoolGED EligApproveActivityESL EligApproveActivityTraining EligApproveActivityPostSecEd
+
+
+ReimburseDailyFullTime  The definition for daily full-time care.
+ReimburseDailyPartTime  The definition for daily part-time care.
+ReimburseWeeklyFullTime The definition for weekly fulltime care
+ReimburseWeeklyPartTime  The definition for weekly part-time care
+ReimburseMonthlyFullTime   The definition for monthly full-time care.
+ReimburseMonthlyPartTime   The definition for monthly part-time care
+ReimburseRateGuidelines Which rate is used if the child falls into more than one category for amount of care.
+ReimburseMaxAgeGroupOne  The maximum age (in months) for the first group used to determine provider rates.
+ReimburseMaxAgeGroupTwo  The maximum age (in months) for the second group used to determine provider rates.
+ReimburseMaxAgeGroupThree The maximum age (in months) for the third group used to determine provider rates.
+ReimburseMaxAgeGroupFour  The maximum age (in months) for the fourth group used to determine provider rates.
+ReimburseMaxAgeGroupFive  The maximum age (in months) for the fifth group used to determine provider rates.
+
+
+ReimburseBase - This is the record with the base reimbursement rates for this type of provider for the Book of Tables.
+ReimburseHigh - This is the record with the highest reimbursement rates for this type of provider for the Book of Tables.
+
+
+For each of the above variables, there are six values, one each for age groups 1 through 5, and one for school age summer care (SC):
+ReimburseHourly
+ReimburseDailyFull
+ReimburseDailyPart
+ReimburseWeeklyFull
+ReimburseWeeklyPart
+ReimburseMonthlyFull
+ReimburseMonthlyPart
+
+
+Table: Reimbursement Rates for Before-and-After Care
+For each of the above variables, there are four values: hourly, daily, weekly, and monthly.
+
+BeforeAfterCare
+BeforeCare
+AfterCare
+
+ReimburseSchoolClose - If there is a different rate for schoolage children for days when school is closed during the school year.
+
+
+ReimburseSchoolCloseDescribe - If there is a different rate for school closings, the description of those rates.
+
+
+ReimburseSpecialNeedsRate - If there are different reimbursement rates for special needs children.
+
+
+ReimburseOtherRates - If the state uses any other rates.
+
+
+ReimburseOtherRatesDescribe If the state uses any other rates, the description of those rates.
+
+

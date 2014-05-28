@@ -3,52 +3,88 @@
  |                    STATA SETUP FILE FOR ICPSR 34902
  |       CHILD CARE AND DEVELOPMENT FUND (CCDF) POLICIES DATABASE,
  |                                  2012
- |            (DATASET 0019: REIMBURSEMENT RATE POLICIES DATA)
+ |                (DATASET 0020: REIMBURSEMENT RATES DATA)
  |
  |
- |  ReimburseDailyFullTime  The definition for daily full-time care.
- |  ReimburseDailyPartTime  The definition for daily part-time care.
- |  ReimburseWeeklyFullTime The definition for weekly fulltime care
- |  ReimburseWeeklyPartTime  The definition for weekly part-time care
- |  ReimburseMonthlyFullTime   The definition for monthly full-time care.
- |  ReimburseMonthlyPartTime   The definition for monthly part-time care
- |  ReimburseRateGuidelines Which rate is used if the child falls into more than one category for amount of care.
- |  ReimburseMaxAgeGroupOne  The maximum age (in months) for the first group used to determine provider rates.
- |  ReimburseMaxAgeGroupTwo  The maximum age (in months) for the second group used to determine provider rates.
- |  ReimburseMaxAgeGroupThree The maximum age (in months) for the third group used to determine provider rates.
- | 
- |  ReimburseMaxAgeGroupFour  The maximum age (in months) for the fourth group used to determine provider rates.
- |  ReimburseMaxAgeGroupFive  The maximum age (in months) for the fifth group used to determine provider rates.
+ |  Please edit this file as instructed below.
+ |  To execute, start Stata, change to the directory containing:
+ |       - this do file
+ |       - the ASCII data file
+ |       - the dictionary file
+ |
+ |  Then execute the do file (e.g., do 34902-0020-statasetup.do)
+
+ | ReimburseBase - This is the record with the base reimbursement rates for this type of provider for the Book of Tables.
+ | ReimburseHigh - This is the record with the highest reimbursement rates for this type of provider for the Book of Tables.
+ |  
+  For each of the above variables, there are six values, one each for age groups 1 through 5, and one for school age summer care (SC):
+ | ReimburseHourly
+ | ReimburseDailyFull
+ | ReimburseDailyPart
+ | ReimburseWeeklyFull
+ | ReimburseWeeklyPart
+ | ReimburseMonthlyFull
+ | ReimburseMonthlyPart
+
+ | Table: Reimbursement Rates for Before-and-After Care
+ |    
+ For each of the above variables, there are four values: hourly, daily, weekly, and monthly.
+ | BeforeAfterCare
+ | BeforeCare
+ | AfterCare
+
+ | ReimburseSchoolClose - If there is a different rate for schoolage children for days when school is closed during the school year.
+ | ReimburseSchoolCloseDescribe - If there is a different rate for school closings, the description of those rates.
+ | ReimburseSpecialNeedsRate - If there are different reimbursement rates for special needs children.
+ | ReimburseOtherRates - If the state uses any other rates.
+ | ReimburseOtherRatesDescribe If the state uses any other rates, the description of those rates.
+ |
+ ReimburseBase ReimburseHigh ReimburseHourly ReimburseDailyFull ReimburseWeeklyFull ReimburseWeeklyPart ReimburseMonthlyFull ReimburseMonthlyPart
+ BeforeAfterCare BeforeCare AfterCare ReimburseSchoolClose ReimburseSchoolCloseDescribe ReimburseSpecialNeedsRate ReimburseOtherRates ReimburseOtherRatesDescribe
  **************************************************************************/
+/*
+* code for creating local for relavent variables in this dataset
+
+local reimburse reimbursehourly reimbursedailyfull reimburseweeklyfull reimburseweeklypart reimbursemonthlyfull reimbursemonthlypart
+foreach var of local reimburse {
+  local `var' `var'1 - `var'5 `var'sc  
+}
+
+local care beforeaftercare beforecare aftercare
+foreach var of local care{
+ local `var' `var'time `var'hourly `var'daily `var'weekly `var'monthly
+}
 
 
+ local keepers reimbursebase reimbursehigh `reimbursehourly' `reimbursedailyfull' `reimburseweeklyfull' `reimburseweeklypart' `reimbursemonthlyfull' `reimbursemonthlypart' `beforeaftercare' `beforecare' `aftercare' reimburseschoolclose reimburseschoolclosedescribe reimbursespecialneedsrate reimburseotherrates reimburseotherratesdescribe
+*/
 
 clear
 set more off  
 
 *******************************************************/
-global Nm  `"19"'
+global Nm  `"20"'
 global d_root `"/Users/truskinovsky/Documents/Prospectus/CCDF data"'
 global d_working `"$d_root/CCDF working"'
 global d_file `"$d_root/ICPSR_34902/DS00$Nm"' 
 global raw_data `"$d_file/34902-00$Nm-Data.txt"'
 global dict `"$d_file/34902-00$Nm-Setup.dct"'
-global outfile `"$d_working/clean data/DS0019new.dta"'
+global outfile `"$d_working/clean data/DS00${Nm}new.dta"'
 global statelist `"$d_working/clean data/statelist.dta"'
 global panelfile `"$d_working/clean data/panelfile.dta"'
 
-global outfilePTall `"$d_working/clean data/DS0019newPTall.dta"'
-global outfilePT1 `"$d_working/clean data/DS0019newPT1.dta"'
-global outfilePT2 `"$d_working/clean data/DS0019newPT2.dta"'
-global outfilePT3 `"$d_working/clean data/DS0019newPT3.dta"'
-global outfilePT4 `"$d_working/clean data/DS0019newPT4.dta"'
+global outfilePTall `"$d_working/clean data/DS00${Nm}newPTall.dta"'
+global outfilePT1 `"$d_working/clean data/DS00${Nm}newPT1.dta"'
+global outfilePT2 `"$d_working/clean data/DS00${Nm}newPT2.dta"'
+global outfilePT3 `"$d_working/clean data/DS00${Nm}newPT3.dta"'
+global outfilePT4 `"$d_working/clean data/DS00${Nm}newPT4.dta"'
 
-global bigfile `"$d_working/clean data/DS0019newbigfile.dta"'
-global bigfilePTall `"$d_working/clean data/DS0019newbigfilePTall.dta"'
-global bigfilePT1 `"$d_working/clean data/DS0019newbigfilePT1.dta"'
-global bigfilePT2 `"$d_working/clean data/DS0019newbigfilePT2.dta"'
-global bigfilePT3 `"$d_working/clean data/DS0019newbigfilePT3.dta"'
-global bigfilePT4 `"$d_working/clean data/DS0019newbigfilePT4.dta"'
+global bigfile `"$d_working/clean data/DS00${Nm}newbigfile.dta"'
+global bigfilePTall `"$d_working/clean data/DS00${Nm}newbigfilePTall.dta"'
+global bigfilePT1 `"$d_working/clean data/DS00${Nm}newbigfilePT1.dta"'
+global bigfilePT2 `"$d_working/clean data/DS00${Nm}newbigfilePT2.dta"'
+global bigfilePT3 `"$d_working/clean data/DS00${Nm}newbigfilePT3.dta"'
+global bigfilePT4 `"$d_working/clean data/DS00${Nm}newbigfilePT4.dta"'
 
 global log `"$d_working/log/D00$Nm -`c(current_date)'.smcl"'
 
@@ -65,17 +101,20 @@ log using "$log", replace
 infile using "$dict", using ("$raw_data") clear
 
 
+ 
 
 /*********************************************************
 
-Section 3: Value Label Definitions
-This section defines labels for the individual values of each variable.
-We suggest that users do not modify this section.
+section 3: value label definitions
+this section defines labels for the individual values of each variable.
+we suggest that users do not modify this section.
 
 **********************************************************/
 
 rename *, l 
-label data "Child Care and Development Fund (CCDF) Policies Database, 2012, Reimbursement Rate Policies Data"
+
+
+label data "Child Care and Development Fund (CCDF) Policies Database, 2012, Reimbursement Rates Data"
 
 #delimit ;
 label define STATE     1 "Alabama" 2 "Alaska" 4 "Arizona" 5 "Arkansas"
@@ -176,7 +215,7 @@ label define COUNTY    1 "All Counties" 2 "All Counties" 3 "All Counties"
                        192 "Gulf Coast Region" 193 "Sedgwick"
                        194 "Mecklenburg" 195 "New York City" 196 "Top Tier"
                        197 "Lower Tier" 198 "Cumberland"
-                       199 "Group E Counties" ;
+                       199 "Group E Counties" 200 "Pulaski" ;
 label define PROGRAM   1 "Unspecified" 2 "NA" 3 "All" 4 "Care 4 Kids"
                        5 "Employment-Related Day Care (ERDC)"
                        6 "Child Care Subsidy Program"
@@ -281,15 +320,104 @@ label define PROVIDERSUBTYPE 0 "NA" 1 "Licensed" 2 "Accredited" 3 "License-Exemp
                        86 "Non-Certified in Provider's Home" 87 "Relative"
                        88 "Gold" 89 "Silver" 90 "Bronze"
                        91 "Regulated Faith Based Accredited"
-                       92 "Registered Accredited" ;
-label define REIMBURSEMAXAGEGROUPONE -5 "Not in manual" -4 "NA" ;
-label define REIMBURSEMAXAGEGROUPTWO -5 "Not in manual" -4 "NA" ;
-label define REIMBURSEMAXAGEGROUPTHREE -5 "Not in manual" -4 "NA" ;
-label define REIMBURSEMAXAGEGROUPFOUR -5 "Not in manual" -4 "NA" ;
-label define REIMBURSEMAXAGEGROUPFIVE -5 "Not in manual" -4 "NA" ;
+                       92 "Registered Accredited" 93 "Tier 0" 94 "Tier 5"
+                       95 "Regularly Certified 2-Star"
+                       96 "Regularly Certified 3-Star"
+                       97 "Regularly Certified 4-Star"
+                       98 "Regularly Certified 5-Star"
+                       99 "Provisionally Certified 2-Star"
+                       100 "Provisionally Certified 3-Star"
+                       101 "Provisionally Certified 4-Star"
+                       102 "Provisionally Certified 5-Star"
+                       103 "QRIS Level 2 and above"
+                       104 "Systems QRIS Level 2 and above"
+                       105 "Systems No Rating"
+                       106 "Non-Systems QRIS Level 2 and above"
+                       107 "Non-Systems No Rating" 108 "Star 1" ;
+label define REIMBURSEBASE -1 "Record reflects base rates for provider type"
+                       0 "Record does not reflect base rates for provider type" ;
+label define REIMBURSEHIGH -1 "Record reflects highest rates for provider type"
+                       0 "Record does not reflect highest rates for provider type" ;
+label define REIMBURSEHOURLY1 -4 "NA or missing values" ;
+label define REIMBURSEDAILYFULL1 -4 "NA or missing values" ;
+label define REIMBURSEDAILYPART1 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYFULL1 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYPART1 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYFULL1 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYPART1 -4 "NA or missing values" ;
+label define REIMBURSEHOURLY2 -4 "NA or missing values" ;
+label define REIMBURSEDAILYFULL2 -4 "NA or missing values" ;
+label define REIMBURSEDAILYPART2 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYFULL2 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYPART2 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYFULL2 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYPART2 -4 "NA or missing values" ;
+label define REIMBURSEHOURLY3 -4 "NA or missing values" ;
+label define REIMBURSEDAILYFULL3 -4 "NA or missing values" ;
+label define REIMBURSEDAILYPART3 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYFULL3 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYPART3 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYFULL3 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYPART3 -4 "NA or missing values" ;
+label define REIMBURSEHOURLY4 -4 "NA or missing values" ;
+label define REIMBURSEDAILYFULL4 -4 "NA or missing values" ;
+label define REIMBURSEDAILYPART4 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYFULL4 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYPART4 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYFULL4 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYPART4 -4 "NA or missing values" ;
+label define REIMBURSEHOURLY5 -4 "NA or missing values" ;
+label define REIMBURSEDAILYFULL5 -4 "NA or missing values" ;
+label define REIMBURSEDAILYPART5 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYFULL5 -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYPART5 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYFULL5 -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYPART5 -4 "NA or missing values" ;
+label define REIMBURSEHOURLYSC -4 "NA or missing values" ;
+label define REIMBURSEDAILYFULLSC -4 "NA or missing values" ;
+label define REIMBURSEDAILYPARTSC -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYFULLSC -4 "NA or missing values" ;
+label define REIMBURSEWEEKLYPARTSC -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYFULLSC -4 "NA or missing values" ;
+label define REIMBURSEMONTHLYPARTSC -4 "NA or missing values" ;
+label define BEFOREAFTERCAREHOURLY -4 "NA or missing values" ;
+label define BEFOREAFTERCAREDAILY -4 "NA or missing values" ;
+label define BEFOREAFTERCAREWEEKLY -4 "NA or missing values" ;
+label define BEFOREAFTERCAREMONTHLY -4 "NA or missing values" ;
+label define BEFORECAREHOURLY -4 "NA or missing values" ;
+label define BEFORECAREDAILY -4 "NA or missing values" ;
+label define BEFORECAREWEEKLY -4 "NA or missing values" ;
+label define BEFORECAREMONTHLY -4 "NA or missing values" ;
+label define AFTERCAREHOURLY -4 "NA or missing values" ;
+label define AFTERCAREDAILY -4 "NA or missing values" ;
+label define AFTERCAREWEEKLY -4 "NA or missing values" ;
+label define AFTERCAREMONTHLY -4 "NA or missing values" ;
+label define REIMBURSESCHOOLCLOSE 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define REIMBURSESPECIALNEEDSRATE 0 "NA" 1 "No, same as for non-special needs children"
+                       2 "Yes, varies on a case by case basis"
+                       3 "Yes, the state adds-on to a base rate"
+                       4 "Yes, specific rates defined for special needs children"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" 99 "Other" ;
+label define REIMBURSESPECIALNEEDSRATETIME 0 "NA" 1 "Hourly" 2 "Daily" 3 "Weekly" 4 "Monthly"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
+label define REIMBURSESPECIALNEEDSGROUPONE -5 "Not in manual" -4 "NA" ;
+label define REIMBURSESPECIALNEEDSGROUPTWO -5 "Not in manual" -4 "NA" ;
+label define REIMBURSESPECIALNEEDSGROUPTHREE -5 "Not in manual" -4 "NA" ;
+label define REIMBURSESPECIALNEEDSGROUPFOUR -5 "Not in manual" -4 "NA" ;
+label define REIMBURSESPECIALNEEDSGROUPFIVE -5 "Not in manual" -4 "NA" ;
+label define REIMBURSESPECIALNEEDSSUMMERCARE -5 "Not in manual" -4 "NA" ;
+label define REIMBURSESPECIALNEEDSBEFOREAFTER -5 "Not in manual" -4 "NA" ;
+label define REIMBURSEOTHERRATES 0 "NA" 1 "Yes" 2 "No"
+                       91 "Not enough information to code accurately"
+                       92 "Not in manual" ;
 
 
 #delimit cr
+
 
 
 
@@ -311,13 +439,51 @@ save "$outfile", replace
 clear 
 use "$outfile"
 
+
+* identify variables to keep:
+* note, not keeping reimburseotherratesdescribe reimburseschoolclosedescribe for now because to long
+
+              local reimburse reimbursehourly reimbursedailyfull reimburseweeklyfull reimburseweeklypart reimbursemonthlyfull reimbursemonthlypart
+              foreach var of local reimburse {
+                   local `var' `var'1 `var'2 `var'3 `var'4 `var'5 `var'sc  
+              }
+
+              local care beforeaftercare beforecare aftercare
+              foreach var of local care{
+                    local `var' `var'hourly `var'daily `var'weekly `var'monthly
+              }
+              
+
+              global keepers  reimbursebase reimbursehigh `reimbursehourly' `reimbursedailyfull' `reimburseweeklyfull' `reimburseweeklypart' `reimbursemonthlyfull' `reimbursemonthlypart' `beforeaftercare' `beforecare' `aftercare'  reimburseschoolclose  reimbursespecialneedsrate reimburseotherrates 
+
+
+              global leaders  county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 _merge
+         
+
 ** divide into 4 data sets based on provider type:**
 ****************************************************
+  *tab providertype, m
+
+
+  /*
+  The provider type to which |
+     the rules of the record |
+                       apply |      Freq.     Percent        Cum.
+-----------------------------+-----------------------------------
+                      Center |        745       32.62       32.62
+      Family Child Care Home |        865       37.87       70.49
+                     In-Home |        284       12.43       82.92
+Group Family Child Care Home |        373       16.33       99.26
+                         All |         17        0.74      100.00
+-----------------------------+-----------------------------------
+                       Total |      2,284      100.00
+
+  */
 
   * first cut: variables for ALL provider types (98) *
   ****************************************************
 
-              tab providertype, m
+              
               keep if providertype == 98
               save "$outfilePTall", replace
 
@@ -326,35 +492,56 @@ use "$outfile"
               cap drop __000000 __000001
 
               ** check for duplicates 
-               duplicates list state begindat2
+               *duplicates list state begindat2
                duplicates tag state begindat2, generate (dups)
-               list state county program familygroup providertype providersubtype begindat begindat2 if dups > 0
+               sort begindat2
+               *list state county program familygroup providertype providersubtype begindat begindat2 if dups > 0
 
               /*
-               40. | Oregon   All Counties   Child Care Program        All        All   Registered   2012/01/01     2012m1 |
-               41. | Oregon   All Counties   Child Care Program        All        All    Certified   2012/01/01     2012m1 |
-               42. | Oregon   All Counties   Child Care Program        All        All     Standard   2007/10/01    2007m10 |
-               43. | Oregon   All Counties   Child Care Program        All        All     Enhanced   2007/10/01    2007m10 |
-               44. | Oregon   All Counties   Child Care Program        All        All   Registered   2007/10/01    2007m10 |
-                   |-------------------------------------------------------------------------------------------------------|
-               45. | Oregon   All Counties   Child Care Program        All        All    Certified   2007/10/01    2007m10 
-
+     +--------------------------------------------------------------------------------------------------------------------------------------+
+     |         state         county                     program   family~p   pr~rtype               providersubtype     begindat   begind~2 |
+     |--------------------------------------------------------------------------------------------------------------------------------------|
+  1. | New Hampshire   All Counties   NH Child Care Scholarship        All        All   Non-Contract License-Exempt   2006/07/01     2006m7 |
+  2. | New Hampshire   All Counties   NH Child Care Scholarship        All        All         Non-Contract Licensed   2006/07/01     2006m7 |
+  3. | New Hampshire   All Counties   NH Child Care Scholarship        All        All                      Contract   2006/07/01     2006m7 |
+  4. | New Hampshire   All Counties   NH Child Care Scholarship        All        All   Non-Contract License-Exempt   2007/07/01     2007m7 |
+  5. | New Hampshire   All Counties   NH Child Care Scholarship        All        All         Non-Contract Licensed   2007/07/01     2007m7 |
+     |--------------------------------------------------------------------------------------------------------------------------------------|
+  6. | New Hampshire   All Counties   NH Child Care Scholarship        All        All                      Contract   2007/07/01     2007m7 |
+  7. | New Hampshire   All Counties   NH Child Care Scholarship        All        All                License-Exempt   2008/07/01     2008m7 |
+  8. | New Hampshire   All Counties   NH Child Care Scholarship        All        All                      Licensed   2008/07/01     2008m7 |
+  9. | New Hampshire   All Counties   NH Child Care Scholarship        All        All                      Contract   2008/07/01     2008m7 |
+     +--------------------------------------------------------------------------------------------------------------------------------------+
+NOTE ANNOYING NEW HAMPSHIRE!! WHY WHY WHY?
 
               */
 
 
-              ** check interesting vars:
-
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-
-              foreach var of local keepers {
-                list state county begindat begindat2 `var' if dups > 0
-              }
-
+              ** keep only the first line in each group for Now 
 
               * keep the first record of each ( registered) ( all seem to be the same generally)
 
-              drop if dups >0 & providersubtype != 17
+                  bys begindat2: drop if dups >0 & _n > 1
+/*
+local reimburse reimbursehourly reimbursedailyfull reimburseweeklyfull reimburseweeklypart reimbursemonthlyfull reimbursemonthlypart
+foreach var of local reimburse {
+  local `var' `var'1-`var'5 `var'sc  
+}
+
+local care beforeaftercare beforecare aftercare
+foreach var of local care{
+ local `var' `var'time `var'hourly `var'daily `var'weekly `var'monthly
+}
+
+ local keepers reimbursebase reimbursehigh `reimbursehourly' `reimbursedailyfull' `reimburseweeklyfull' `reimburseweeklypart' `reimbursemonthlyfull' `reimbursemonthlypart' `beforeaftercare' `beforecare' `aftercare' reimburseschoolclose reimburseschoolclosedescribe reimbursespecialneedsrate reimburseotherrates reimburseotherratesdescribe
+*/           
+              /*
+              foreach var of local keepers {
+                list state county begindat begindat2 `var' if dups > 0
+              }
+              
+              */
+
 
 
               * check if unique ID
@@ -362,43 +549,18 @@ use "$outfile"
               save "$outfilePTall", replace
 
 
+              * run panel file program 
 
-              * merge to panelfile 
-              clear
-              use "$panelfile"
+              makepanel "$outfilePTall" "$bigfilePTall"
 
-              merge 1:1 state begindat2 using "$outfilePTall", update replace
-              save "$bigfilePTall", replace
-
-              clear
-              use "$bigfilePTall"
-
-              ** keep interesting variables ( noted above)
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
-              keep `leaders' `keepers'
-
-
-              ** fill down 
-              sort state yearmo
-              foreach var of local leaders {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
-              foreach var of local keepers {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
-
-              ** rename variables with PTall ending: 
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders  county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 dups _merge
-
-              local leaderkeepers `keepers' `leaders' 
-
+              local leaderkeepers $keepers $leaders
               foreach var of local leaderkeepers {
-                rename `var' `var'PTall 
-              }
+                   rename `var' `var'PTall  
+                }
+              
 
               save "$bigfilePTall", replace
+
 
   * next cut: variables for Center based provider types (1) *
   ****************************************************
@@ -415,7 +577,9 @@ use "$outfile"
 
               ** check for duplicates 
                duplicates list state begindat2
-               
+              duplicates tag state begindat2, generate (dups)
+               sort begindat2
+               list state county program  providersubtype begindat if dups > 0, c
                * yay no duplicates! *
 
               * check if unique ID
@@ -423,39 +587,12 @@ use "$outfile"
               save "$outfilePT1", replace
 
 
+              * run panel file program 
 
-              * merge to panelfile 
-              clear
-              use "$panelfile"
-
-              merge 1:1 state begindat2 using "$outfilePT1", update replace
-              save "$bigfilePT1", replace
-
-              clear
-              use "$bigfilePT1"
-
-              ** keep interesting variables ( noted above)
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
-              keep `leaders' `keepers'
-
-
-              ** fill down 
-              sort state yearmo
-              foreach var of local leaders {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
-              foreach var of local keepers {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
-
-
+              makepanel "$outfilePT1" "$bigfilePT1"
+             
             
-              ** rename variables with PTall ending: 
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders  county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 _merge
-              local leaderkeepers `keepers' `leaders' 
-
+             local leaderkeepers $keepers $leaders
               foreach var of local leaderkeepers {
                 rename `var' `var'PT1 
               }
@@ -488,38 +625,15 @@ use "$outfile"
 
 
 
-              * merge to panelfile 
-              clear
-              use "$panelfile"
+               * run panel file program 
 
-              merge 1:1 state begindat2 using "$outfilePT2", update replace
-              save "$bigfilePT2", replace
-
-              clear
-              use "$bigfilePT2"
-
-              ** keep interesting variables ( noted above)
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
-              keep `leaders' `keepers'
-
-
-              ** fill down 
-              sort state yearmo
-              foreach var of local leaders {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
-              foreach var of local keepers {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
+                makepanel "$outfilePT2" "$bigfilePT2"
 
               ** rename variables with PT2 ending: 
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders  county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
-              local leaderkeepers `keepers' `leaders' 
 
-              foreach var of local leaderkeepers {
-                rename `var' `var'PT2 
+               local leaderkeepers $keepers $leaders
+               foreach var of local leaderkeepers {
+                  rename `var' `var'PT2 
               }
               
 
@@ -550,38 +664,12 @@ use "$outfile"
               save "$outfilePT3", replace
 
 
-
-              ** merge to panelfile 
-              clear
-              use "$panelfile"
-
-              merge 1:1 state begindat2 using "$outfilePT3", update replace
-              save "$bigfilePT3", replace
-
-              clear
-              use "$bigfilePT3"
-
-              ** keep interesting variables ( noted above)
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
-              keep `leaders' `keepers'
-
-
-              ** fill down 
-              sort state yearmo
-              foreach var of local leaders {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
-              foreach var of local keepers {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
+              * run panel file program
+              makepanel "$outfilePT3" "$bigfilePT3"
 
               ** rename variables with PT3 ending: 
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders  county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
-              local leaderkeepers `keepers' `leaders' 
-
-              foreach var of local leaderkeepers {
+              local leaderkeepers $keepers $leaders
+               foreach var of local leaderkeepers {
                 rename `var' `var'PT3 
               }
               cap drop _merge
@@ -611,38 +699,12 @@ use "$outfile"
               isid state begindat2
               save "$outfilePT4", replace
 
-
-
-              * merge to panelfile 
-              clear
-              use "$panelfile"
-              merge 1:1 state begindat2 using "$outfilePT4", update replace
-              save "$bigfilePT4", replace
-
-              clear
-              use "$bigfilePT4"
-
-              ** keep interesting variables ( noted above)
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders yearmo state begindat2 county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
-              keep `leaders' `keepers'
-
-
-              ** fill down 
-              sort state yearmo
-              foreach var of local leaders {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
-              foreach var of local keepers {
-              bys state: replace `var' = `var'[_n-1] if missing(`var') & _merge == 1
-              }
+              * run panel file program
+              makepanel "$outfilePT4" "$bigfilePT4"
 
               ** rename variables with PT4 ending: 
-              local keepers reimbursedailyfulltime reimbursedailyparttime reimburseweeklyfulltime reimburseweeklyparttime reimbursemonthlyfulltime reimbursemonthlyparttime reimburserateguidelines reimbursemaxagegroupone reimbursemaxagegrouptwo reimbursemaxagegroupthree reimbursemaxagegroupfour reimbursemaxagegroupfive
-              local leaders  county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2  _merge
-              local leaderkeepers `keepers' `leaders' 
-
-              foreach var of local leaderkeepers {
+              local leaderkeepers $keepers $leaders
+               foreach var of local leaderkeepers {
                 rename `var' `var'PT4 
               }
 
