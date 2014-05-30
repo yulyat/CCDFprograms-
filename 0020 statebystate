@@ -1,3 +1,180 @@
+
+
+clear
+set more off
+use "$outfile"
+
+format %9.0g 
+capture program drop countytype
+
+program define countytype
+tab county if state == `1'
+tab providertype providersubtype if state == `1'
+end
+
+capture program drop allrates
+
+program define allrates
+sort begindat2
+#delimit ;
+
+forvalues n = 1/5 {;
+	list state county program familygroup providertype providersubtype begindat2 reimbursehourly`n' 
+	reimbursedailyfull`n' reimbursedailypart`n' reimburseweeklyfull`n' reimburseweeklypart`n' 
+	reimbursemonthlyfull`n' reimbursemonthlypart`n'  if state == `1', nol noobs;
+	} ;
+	#delimit cr 
+end
+
 ** reimbursement rates, state by state exploration
 
-1. Alabama
+* 1. Alabama
+
+
+* regions:
+tab county if state == 1
+
+* provider types, subtypes:
+tab providertype providersubtype if state == 1
+
+  * no subtypes to worry about
+
+
+** what sort of information do I have about reimbursement rates?
+
+sort begindat2
+#delimit ;
+
+forvalues n = 1/5 {;
+	list state county program familygroup providertype providersubtype begindat2 reimbursehourly`n' 
+	reimbursedailyfull`n' reimbursedailypart`n' reimburseweeklyfull`n' reimburseweeklypart`n' 
+	reimbursemonthlyfull`n' reimbursemonthlypart`n'  if state == 1, nol noobs;
+} ;
+
+
+** only have values for groups 1-2 [ should figure out why]
+
+*looks like alabama has only weekly records: weekly part time, weekly fulltime, family group & program are  also not relevant
+
+sort county providertype begindat2
+#delimit ;
+list  county  providertype begindat2 
+reimburseweeklyfull1 reimburseweeklypart1  
+reimburseweeklyfull2 reimburseweeklypart2 
+ if state == 1, noobs sepby(county) ab(5) table ;
+
+#delimit cr 
+
+/* Alabama has only 1 rate for in-home care since 10/2007 and its the same across all counties 
+
+*/
+
+* Alaska
+
+countytype 2
+
+* only one subtype --> unliscenced, which refers to in-home providers only 
+
+allrates 2
+
+* have records for hourly, daily full and part, and monthly full and part rates, for age groups 1-3:
+sort county providertype begindat2
+#delimit ;
+
+list county  providertype providersubtype begindat2 
+reimbursehourly1 reimbursehourly2 reimbursehourly3 
+ if state == 2, noobs sepby(county) table ab(5);
+
+ list county  providertype providersubtype begindat2 
+reimbursedailyfull1 reimbursedailypart1 
+reimbursedailyfull2 reimbursedailypart2 
+reimbursedailyfull3 reimbursedailypart3 
+if state == 2, noobs sepby(county) table ab(5);
+
+ list county  providertype providersubtype begindat2 
+reimbursemonthlyfull1 reimbursemonthlypart1
+reimbursemonthlyfull2 reimbursemonthlypart2
+reimbursemonthlyfull3 reimbursemonthlypart3
+ if state == 2, noobs sepby(county) table ab(5);
+
+#delimit cr 
+
+* Arizona * no record for AZ?
+
+*Arizona 
+countytype 4
+allrates 4
+
+* Arizona has daily reimbursement records for age groups 1-3
+sort county providertype begindat2
+
+
+local rates reimbursedailyfull1 reimbursedailypart1  reimbursedailyfull2 reimbursedailypart2  reimbursedailyfull3 reimbursedailypart3 
+
+format %9.0g `rates'
+
+local rates reimbursedailyfull1 reimbursedailypart1  reimbursedailyfull2 reimbursedailypart2  reimbursedailyfull3 reimbursedailypart3 
+ list county  providertype providersubtype begindat2 `rates' if state == 4, noobs sepby(county) ab(5) table 
+
+
+
+#delimit cr 
+
+* Arkansas
+countytype 5 /* only records for 1 county - rates look pretty consisten over the period - 1 change in in-home rates in 2011*/
+allrates 5
+
+* has daily reimbursement records for 1-3 groups
+
+sort county providertype begindat2
+
+
+local rates reimbursedailyfull1 reimbursedailypart1  reimbursedailyfull2 reimbursedailypart2  reimbursedailyfull3 reimbursedailypart3 
+
+format %9.0g `rates'
+
+local rates reimbursedailyfull1 reimbursedailypart1  reimbursedailyfull2 reimbursedailypart2  reimbursedailyfull3 reimbursedailypart3 
+list county  providertype providersubtype begindat2 `rates' if state == 5, noobs sepby(county) ab(5) table compress
+
+* California - 6 records, only for LA County 
+countytype 6
+allrates 6
+
+local rates1  reimbursehourly1 reimbursedailyfull1 reimburseweeklyfull1 reimburseweeklypart1 reimbursemonthlyfull1 reimbursemonthlypart1 
+local rates2  reimbursehourly2 reimbursedailyfull2 reimburseweeklyfull2 reimburseweeklypart2 reimbursemonthlyfull2 reimbursemonthlypart2
+format %9.0g `rates1' `rates2'
+list county  providertype providersubtype begindat2 `rates1' if state == 6, noobs sepby(county) ab(9) table compress
+list county  providertype providersubtype begindat2 `rates2' if state == 6, noobs sepby(county) ab(9) table compress
+
+
+
+
+* Colorado: 8 - all records for Denver county only 
+
+countytype 8
+allrates 8
+
+
+sort county providertype begindat2 
+
+
+local rates reimbursedailyfull1 reimbursedailypart1  reimbursedailyfull2 reimbursedailypart2  reimbursedailyfull3 reimbursedailypart3 
+
+format %9.0g `rates'
+
+local rates reimbursedailyfull1 reimbursedailypart1  reimbursedailyfull2 reimbursedailypart2  reimbursedailyfull3 reimbursedailypart3 
+list county  providertype providersubtype begindat2 `rates' if state == 8, noobs sepby(begindat2) ab(5) table compress
+
+
+** connecticut - 9 - records for weekly reinbursements for ages 1&2
+
+countytype 9
+allrates 9
+
+sort county providertype begindat2 
+local rates reimburseweeklyfull1 reimburseweeklypart1 reimburseweeklyfull2 reimburseweeklypart2 
+format %9.0g `rates'
+
+format %-28.0g county providertype providersubtype
+list county  providertype providersubtype begindat2 `rates' if state == 9, noobs sepby(county) ab(5) table 
+

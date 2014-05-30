@@ -458,7 +458,11 @@ use "$outfile"
 
 
               global leaders  county program familygroup providertype providersubtype begindat enddat beginmajority endmajority enddat2 _merge
-         
+
+
+** explore
+**********
+
 
 ** divide into 4 data sets based on provider type:**
 ****************************************************
